@@ -15,7 +15,7 @@
 
 ---
 
-##What is Brew?
+## What is Brew?
 
 **Brew** is a lightweight, blazing-fast command-line tool designed to help developers manage, visualize, and sync code snippets across multiple languages.
 
