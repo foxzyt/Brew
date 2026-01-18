@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brew | The Ultimate Snippet Manager</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #050505;
+            --surface: #111111;
+            --text: #ffffff;
+            --accent: #FFC247; /* O Amarelo da Logo */
+            --gray: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Esconde o cursor padrão para usar o customizado */
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            width: 100vw;
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        body.hovering .cursor-outline {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 194, 71, 0.1);
+            border-color: var(--accent);
+        }
+
+        /* --- PRELOADER --- */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loader-text {
+            font-size: 8vw;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .loader-bar {
+            width: 0%;
+            height: 2px;
+            background: #fff;
+            margin-top: 20px;
+            transition: width 0.1s;
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 30px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: difference;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -1px;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            margin-bottom: 12px; /* Posicionado acima do w */
+            margin-left: -5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #fff;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 6rem;
+            line-height: 1;
+            font-weight: 700;
+            margin-bottom: 30px;
+            letter-spacing: -2px;
+        }
+
+        h1 span {
+            color: var(--gray);
+            display: block;
+        }
+
+        h1 .highlight {
+            color: var(--accent);
+            position: relative;
+            display: inline-block;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: var(--gray);
+            max-width: 500px;
+            margin-bottom: 50px;
+            line-height: 1.6;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #000;
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        /* --- TERMINAL DEMO --- */
+        .terminal-wrapper {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 45%;
+            perspective: 1000px;
+        }
+
+        .terminal {
+            background: rgba(15, 15, 15, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: rotateY(-10deg) rotateX(5deg);
+            transition: transform 0.5s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .terminal:hover {
+            transform: rotateY(0deg) rotateX(0deg);
+        }
+
+        .terminal-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .code-line {
+            margin-bottom: 10px;
+            display: flex;
+            font-size: 14px;
+        }
+
+        .prompt { color: var(--accent); margin-right: 10px; }
+        .cmd { color: #fff; }
+        .output { color: var(--gray); display: block; margin-bottom: 15px; font-size: 13px; }
+
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* --- FEATURES GRID (BENTO) --- */
+        .features {
+            padding: 100px 0;
+            background: var(--surface);
+        }
+
+        .section-header {
+            margin-bottom: 80px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 300px);
+            gap: 20px;
+        }
+
+        .grid-item {
+            background: var(--bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .grid-item:hover {
+            border-color: rgba(255, 194, 71, 0.3);
+        }
+
+        .grid-item h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .grid-item p {
+            color: var(--gray);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .grid-large {
+            grid-column: span 2;
+        }
+
+        .grid-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        /* --- STATS STRIP --- */
+        .marquee {
+            background: var(--accent);
+            color: #000;
+            padding: 20px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            transform: rotate(-2deg) scale(1.1);
+            margin: 50px 0;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            font-weight: 800;
+            font-size: 40px;
+            animation: scroll 20s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            padding: 100px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <div class="preloader">
+        <div class="loader-text">0%</div>
+        <div style="width: 200px; height: 2px; background: #333; margin-top: 20px;">
+            <div class="loader-bar"></div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="logo-container magnetic">
+            Brew
+            <div class="logo-dot"></div>
+        </div>
+        <div class="nav-links">
+            <a href="#features" class="nav-link magnetic">Features</a>
+            <a href="https://github.com/foxzyt/Brew" class="nav-link magnetic">Github</a>
+        </div>
+    </nav>
+
+    <header class="hero container">
+        <div class="hero-content">
+            <h1 class="reveal-text">
+                Code faster.<br>
+                <span>Zero<span class="highlight">bloat.</span></span>
+            </h1>
+            <p class="subtitle reveal-text">
+                The high-performance C++ CLI snippet manager.
+                Sync with GitHub, manage snippets, and code at the speed of thought.
+            </p>
+            <div class="btn-group reveal-text">
+                <a href="#" class="btn btn-primary magnetic">Download v1.0</a>
+                <a href="#" class="btn btn-secondary magnetic">View Snippets</a>
+            </div>
+        </div>
+
+        <div class="terminal-wrapper">
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="terminal-body">
+                    <div class="code-line">
+                        <span class="prompt">user@dev:~$</span>
+                        <span class="cmd type-1"></span>
+                    </div>
+                    <div class="output out-1"></div>
+
+                    <div class="code-line hidden line-2">
+                        <span class="prompt">user@dev:~$</span>
+                        <span class="cmd type-2"></span>
+                    </div>
+                    <div class="output hidden out-2">
+                        Language: C++<br>
+                        Path: algorithm/sort.md<br>
+                        Description: Sorts a range in ascending order
+                    </div>
+
+                    <div class="code-line hidden line-3">
+                        <span class="prompt">user@dev:~$</span>
+                        <span class="cmd typing-cursor"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="marquee">
+        <div class="marquee-content">
+            BREW CLI • SYNC GITHUB • C++ NATIVE • PYTHON SUPPORT • LIGHTWEIGHT • NO BLOAT • BREW CLI • SYNC GITHUB • C++ NATIVE • PYTHON SUPPORT •
+        </div>
+    </div>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 style="font-size: 3rem; margin-bottom: 10px;">Why Brew?</h2>
+                <p style="color: var(--gray);">Engineered for minimalists.</p>
+            </div>
+
+            <div class="grid-container">
+                <div class="grid-item grid-large magnetic-card">
+                    <div class="grid-icon">⚡</div>
+                    <h3>Blazing Fast C++ Core</h3>
+                    <p>Built with native C++ and httplib. No heavy runtimes, no electron bloat. Brew runs instantly and consumes negligible memory resources.</p>
+                </div>
+                <div class="grid-item magnetic-card">
+                    <div class="grid-icon">🔄</div>
+                    <h3>GitHub Sync</h3>
+                    <p>Your snippets live in your repo. Brew just caches them locally. No vendor lock-in.</p>
+                </div>
+                <div class="grid-item magnetic-card">
+                    <div class="grid-icon">📂</div>
+                    <h3>Multi-Language</h3>
+                    <p>Python, C++, JS, Rust. Organize by folder structure automatically.</p>
+                </div>
+                <div class="grid-item grid-large magnetic-card">
+                    <div class="grid-icon">🎨</div>
+                    <h3>Beautiful CLI Output</h3>
+                    <p>Syntax highlighting, markdown rendering, and colorful outputs right inside your terminal using the Rang library.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-logo">Brew<span style="color:var(--accent)">.</span></div>
+            <p style="color: var(--gray); margin-bottom: 30px;">© 2026 Foxzyt. Open Source MIT License.</p>
+            <div class="nav-links" style="justify-content: center;">
+                <a href="#" class="nav-link">Twitter</a>
+                <a href="#" class="nav-link">Discord</a>
+                <a href="#" class="nav-link">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. PRELOADER ANIMATION ---
+        const tlLoader = gsap.timeline();
+
+        // Animate counter
+        let progress = { value: 0 };
+        tlLoader.to(progress, {
+            value: 100,
+            duration: 1.5,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                document.querySelector('.loader-text').textContent = Math.round(progress.value) + '%';
+                document.querySelector('.loader-bar').style.width = Math.round(progress.value) + '%';
+            }
+        });
+
+        // Slide up reveal
+        tlLoader.to('.preloader', {
+            yPercent: -100,
+            duration: 1,
+            ease: "expo.inOut"
+        });
+
+        // Hero Reveal sequence
+        tlLoader.from('.logo-container, .nav-link', {
+            y: -50,
+            opacity: 0,
+            stagger: 0.1,
+            duration: 0.8
+        }, "-=0.5");
+
+        tlLoader.from('.reveal-text', {
+            y: 100,
+            opacity: 0,
+            stagger: 0.2,
+            duration: 1,
+            ease: "power3.out"
+        }, "-=0.8");
+
+        tlLoader.from('.terminal-wrapper', {
+            x: 100,
+            opacity: 0,
+            rotationY: 45,
+            duration: 1.5,
+            ease: "power3.out"
+        }, "-=1");
+
+        // --- 2. CUSTOM CURSOR LOGIC ---
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Dot follows instantly
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Outline follows with slight delay (GSAP)
+            gsap.to(cursorOutline, {
+                x: posX,
+                y: posY,
+                duration: 0.15,
+                ease: "power2.out"
+            });
+        });
+
+        // Hover Effect for Cursor
+        const hoverables = document.querySelectorAll('a, button, .magnetic, .magnetic-card');
+        hoverables.forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+        // --- 3. MAGNETIC BUTTONS EFFECT ---
+        const magnetics = document.querySelectorAll('.magnetic');
+        magnetics.forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+
+                gsap.to(btn, {
+                    x: x * 0.3, // Move 30% of mouse distance
+                    y: y * 0.3,
+                    duration: 0.2
+                });
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+            });
+        });
+
+        // --- 4. TERMINAL TYPING SIMULATION ---
+        const typeWriter = gsap.timeline({ repeat: -1, repeatDelay: 5 });
+
+        // Command 1
+        typeWriter.to('.type-1', { text: "brew sync", duration: 1, delay: 3.5 });
+        typeWriter.to('.out-1', { text: "✔ Index synced successfully! (160 snippets updated)", duration: 0.1 });
+
+        // Command 2
+        typeWriter.set('.line-2', { display: 'flex', opacity: 1 });
+        typeWriter.to('.type-2', { text: "brew info cpp-alg-sort", duration: 1.5, delay: 0.5 });
+        typeWriter.set('.out-2', { display: 'block' });
+
+        // Reset line
+        typeWriter.set('.line-3', { display: 'flex', opacity: 1 });
+
+        // --- 5. SCROLL ANIMATIONS (ScrollTrigger) ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Bento Grid Reveal
+        gsap.from('.grid-item', {
+            scrollTrigger: {
+                trigger: '.grid-container',
+                start: 'top 80%',
+            },
+            y: 100,
+            opacity: 0,
+            stagger: 0.2,
+            duration: 1,
+            ease: "power3.out"
+        });
+
+        // Parallax Effect on Terminal
+        gsap.to('.terminal', {
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1
+            },
+            y: 200,
+            rotationX: -10
+        });
+
+        // Marquee Speed Up on Scroll
+        gsap.to('.marquee-content', {
+            scrollTrigger: {
+                trigger: '.marquee',
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 1
+            },
+            xPercent: -20 // Extra movement based on scroll
+        });
+
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+    <script>gsap.registerPlugin(TextPlugin);</script>
+</body>
+</html>
