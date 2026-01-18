@@ -1,0 +1,2 @@
+# Brew
+A snippet manager
