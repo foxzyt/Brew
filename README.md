@@ -15,7 +15,7 @@
 
 ---
 
-## 🍺 What is Brew?
+##What is Brew?
 
 **Brew** is a lightweight, blazing-fast command-line tool designed to help developers manage, visualize, and sync code snippets across multiple languages.
 
@@ -27,7 +27,7 @@ Unlike traditional snippet managers, Brew allows you to:
 
 ---
 
-## ✨ Key Features
+##Key Features
 
 * **Smart Markdown Parsing**
   Automatically extracts pure code from `.md` files, ignoring headers and explanations when copying to the clipboard.
@@ -47,7 +47,7 @@ Unlike traditional snippet managers, Brew allows you to:
 
 ---
 
-## 🚀 Installation
+##Installation
 
 ### Prerequisites
 
@@ -66,7 +66,7 @@ brew sync
 
 ---
 
-## 🛠 Usage
+##Usage
 
 ### Syncing & Discovery
 
@@ -110,7 +110,7 @@ brew purge
 
 ---
 
-## 📂 Repository Structure
+##Repository Structure
 
 Brew expects an `index.json` file in the repository root with the following format:
 
@@ -126,7 +126,7 @@ Brew expects an `index.json` file in the repository root with the following form
 
 ---
 
-## 🏗 Built With
+##Built With
 
 * **CLI11** – Robust command-line parsing
 * **nlohmann/json** – Seamless JSON manipulation
@@ -136,7 +136,7 @@ Brew expects an `index.json` file in the repository root with the following form
 
 ---
 
-## 📄 License
+##License
 
 This project is licensed under the **MIT License**.
 See the `LICENSE` file for details.
